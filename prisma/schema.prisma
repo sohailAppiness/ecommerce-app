@@ -1,0 +1,32 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  cartitem  Json     @default("[]")
+  savelater Json     @default("[]")
+}
+
+model Category {
+  id      String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name    String    @unique @db.VarChar(255)
+  Product Product[]
+}
+
+model Product {
+  id          String    @id @default(uuid())
+  name        String
+  description String
+  price       Float
+  imageurl    String
+  categoryid  String?   @db.Uuid
+  Category    Category? @relation(fields: [categoryid], references: [id])
+}
