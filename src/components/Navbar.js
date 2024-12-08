@@ -27,9 +27,9 @@ export default function Navbar() {
     }
   };
 
-  if (!isAuthenticated) {
-    return null;
-  }
+  // if (!isAuthenticated) {
+  //   return null;
+  // }
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white border-b z-50">

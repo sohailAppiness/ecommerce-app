@@ -19,19 +19,20 @@ const ProductDetailSkeleton = () => (
         <div className="h-4 w-24 bg-gray-200 rounded mb-4" /> {/* Back link */}
         <div className="h-8 w-3/4 bg-gray-200 rounded mb-4" /> {/* Title */}
         <div className="h-6 w-1/4 bg-gray-200 rounded mb-4" /> {/* Price */}
-        <div className="space-y-2 mb-4"> {/* Description */}
+        <div className="space-y-2 mb-4">
+          {" "}
+          {/* Description */}
           <div className="h-4 w-full bg-gray-200 rounded" />
           <div className="h-4 w-full bg-gray-200 rounded" />
           <div className="h-4 w-2/3 bg-gray-200 rounded" />
         </div>
-
         <div className="h-32 w-full bg-gray-200 rounded mb-8" /> {/* Details */}
-
         <div className="flex flex-col sm:flex-row gap-4 mt-auto">
           <div className="h-12 w-full bg-gray-200 rounded" /> {/* Button */}
           <div className="h-12 w-full bg-gray-200 rounded" /> {/* Button */}
         </div>
-        <div className="h-12 w-full bg-gray-200 rounded mt-4" /> {/* Save button */}
+        <div className="h-12 w-full bg-gray-200 rounded mt-4" />{" "}
+        {/* Save button */}
       </div>
     </div>
   </div>
@@ -49,10 +50,10 @@ export default function ProductPage({ params }) {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.replace("/signin");
-      return;
-    }
+    // if (!isAuthenticated) {
+    //   router.replace("/signin");
+    //   return;
+    // }
 
     const fetchProduct = async () => {
       try {
@@ -69,9 +70,9 @@ export default function ProductPage({ params }) {
     fetchProduct();
   }, [params.id, isAuthenticated, router]);
 
-  if (!isAuthenticated) {
-    return null;
-  }
+  // if (!isAuthenticated) {
+  //   return null;
+  // }
 
   if (loading) {
     return <ProductDetailSkeleton />;
@@ -86,12 +87,20 @@ export default function ProductPage({ params }) {
   }
 
   const handleAddToCart = () => {
+    if (!isAuthenticated) {
+      router.push("/signin");
+      return;
+    }
     addToCart(product);
     setMessage("Added to cart successfully!");
     setTimeout(() => setMessage(""), 2000);
   };
 
   const handleBuyNow = () => {
+    if (!isAuthenticated) {
+      router.push("/signin");
+      return;
+    }
     if (!isInCart) {
       addToCart(product);
     }
@@ -99,8 +108,16 @@ export default function ProductPage({ params }) {
   };
 
   const handleSaveForLater = async () => {
+    if (!isAuthenticated) {
+      router.push("/signin");
+      return;
+    }
     await saveForLater(product);
-    setMessage(isItemSaved(product.id) ? "Product removed from saved items!" : "Product saved for later!");
+    setMessage(
+      isItemSaved(product.id)
+        ? "Product removed from saved items!"
+        : "Product saved for later!"
+    );
     setTimeout(() => setMessage(""), 2000);
   };
 
@@ -133,14 +150,14 @@ export default function ProductPage({ params }) {
           <p className="text-xl text-green-400 font-bold mb-4">
             ₹{product.price.toFixed(2)}
           </p>
-          <p className="text-gray-300 mb-4">{product.description}</p>
+          <p className="text-black mb-4">{product.description}</p>
 
           {/* Product Details Section */}
           <div className="mb-8">
-            <h2 className="text-xl font-semibold text-white mb-2">
+            <h2 className="text-xl font-semibold text-black mb-2">
               Details of the product:
             </h2>
-            <p className="text-gray-300">
+            <p className="text-black">
               Lorem ipsum dolor sit amet consectetur adipisicing elit. Maxime
               mollitia molestiae quas vel sint commodi repudiandae consequuntur
               voluptatum laborum numquam blanditiis harum quisquam eius sed odit

@@ -24,16 +24,16 @@ export default function CategoriesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.replace("/signin");
-      return;
-    }
+    // if (!isAuthenticated) {
+    //   router.replace("/signin");
+    //   return;
+    // }
 
     const fetchCategories = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_VERCEL_URL 
+        const apiUrl = process.env.NEXT_PUBLIC_VERCEL_URL
           ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/categories`
-          : '/api/categories';
+          : "/api/categories";
 
         const response = await fetch(apiUrl);
         const data = await response.json();
@@ -48,9 +48,9 @@ export default function CategoriesPage() {
     fetchCategories();
   }, [isAuthenticated, router]);
 
-  if (!isAuthenticated) {
-    return null;
-  }
+  // if (!isAuthenticated) {
+  //   return null;
+  // }
 
   // Placeholder images for categories
   const categoryImages = {
@@ -69,39 +69,37 @@ export default function CategoriesPage() {
     <div className="container mx-auto px-4 py-8 mt-[150px]">
       <h1 className="text-3xl font-bold mb-8 text-center">Shop by Category</h1>
       <div className="flex flex-wrap justify-center gap-6">
-        {loading ? (
-          // Show 6 skeleton items while loading
-          [...Array(6)].map((_, index) => (
-            <CategorySkeleton key={index} />
-          ))
-        ) : (
-          categories.map((category) => (
-            <Link
-              href={`/categories/${category.id}`}
-              key={category.id}
-              className="group relative w-full sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] overflow-hidden rounded-xl bg-white shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              <div className="aspect-[4/3] overflow-hidden">
-                <img
-                  src={
-                    categoryImages[category.name] ||
-                    "https://via.placeholder.com/400x300"
-                  }
-                  alt={category.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                />
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent">
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <h3 className="text-xl font-bold text-white mb-2">
-                    {category.name}
-                  </h3>
-                  <p className="text-white/80 text-sm">Explore {category.name}</p>
+        {loading
+          ? // Show 6 skeleton items while loading
+            [...Array(6)].map((_, index) => <CategorySkeleton key={index} />)
+          : categories.map((category) => (
+              <Link
+                href={`/categories/${category.id}`}
+                key={category.id}
+                className="group relative w-full sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] overflow-hidden rounded-xl bg-white shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <div className="aspect-[4/3] overflow-hidden">
+                  <img
+                    src={
+                      categoryImages[category.name] ||
+                      "https://via.placeholder.com/400x300"
+                    }
+                    alt={category.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
                 </div>
-              </div>
-            </Link>
-          ))
-        )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent">
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <h3 className="text-xl font-bold text-white mb-2">
+                      {category.name}
+                    </h3>
+                    <p className="text-white/80 text-sm">
+                      Explore {category.name}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            ))}
       </div>
     </div>
   );
