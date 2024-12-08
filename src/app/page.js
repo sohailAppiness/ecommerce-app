@@ -34,7 +34,11 @@ export default function Home() {
 
     const fetchProducts = async () => {
       try {
-        const response = await fetch("/api/products");
+        const apiUrl = process.env.NEXT_PUBLIC_VERCEL_URL 
+          ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/products`
+          : '/api/products';
+
+        const response = await fetch(apiUrl);
         const data = await response.json();
         setProducts(data);
       } catch (error) {

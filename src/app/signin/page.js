@@ -24,8 +24,12 @@ export default function SignIn() {
     setError("");
     setIsLoading(true);
 
+    const apiUrl = process.env.NEXT_PUBLIC_VERCEL_URL 
+      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/auth/signin`
+      : '/api/auth/signin';
+
     try {
-      const response = await fetch("/api/auth/signin", {
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

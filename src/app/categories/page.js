@@ -31,7 +31,11 @@ export default function CategoriesPage() {
 
     const fetchCategories = async () => {
       try {
-        const response = await fetch("/api/categories");
+        const apiUrl = process.env.NEXT_PUBLIC_VERCEL_URL 
+          ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/categories`
+          : '/api/categories';
+
+        const response = await fetch(apiUrl);
         const data = await response.json();
         setCategories(data);
       } catch (error) {

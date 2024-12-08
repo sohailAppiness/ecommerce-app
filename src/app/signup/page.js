@@ -37,8 +37,12 @@ export default function SignUp() {
       return;
     }
 
+    const apiUrl = process.env.NEXT_PUBLIC_VERCEL_URL 
+      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/auth/register`
+      : '/api/auth/register';
+
     try {
-      const response = await fetch("/api/auth/signup", {
+      const response = await fetch(apiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -49,7 +53,7 @@ export default function SignUp() {
       const data = await response.json();
 
       if (response.ok) {
-        // Use Zustand store for auth state
+        // Log the user in after successful registration
         login(data);
         router.push("/");
       } else {
