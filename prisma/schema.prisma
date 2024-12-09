@@ -13,6 +13,7 @@ model User {
   password  String
   cartitem  Json     @default("[]")
   savelater Json     @default("[]")
+  orders    Order[]
 }
 
 model Category {
@@ -29,4 +30,17 @@ model Product {
   imageurl    String
   categoryid  String?   @db.Uuid
   Category    Category? @relation(fields: [categoryid], references: [id])
+}
+
+model Order {
+  id        String   @id @default(uuid())
+  orderId   String   @unique // Razorpay order ID
+  userId    String
+  amount    Float
+  items     Json
+  status    String   // PENDING, COMPLETED, FAILED
+  paymentId String?  // Razorpay payment ID
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
 }

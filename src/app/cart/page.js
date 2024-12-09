@@ -4,6 +4,7 @@ import useAuthStore from "@/store/useAuthStore";
 import useCartStore from "@/store/useCartStore";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { loadScript } from "@/lib/utils";
 
 const CartSkeleton = () => (
   <div className="flex flex-col lg:flex-row gap-8 animate-pulse">
@@ -50,45 +51,112 @@ const CartSkeleton = () => (
 
 export default function CartPage() {
   const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, userId } = useAuthStore();
   const cartItems = useCartStore((state) => state.cartItems);
   const removeFromCart = useCartStore((state) => state.removeFromCart);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
-  const getTotalPrice = useCartStore((state) => state.getTotalPrice);
   const clearCart = useCartStore((state) => state.clearCart);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
+    // Load Razorpay script
+    loadScript("https://checkout.razorpay.com/v1/checkout.js");
+    
     // Simulate loading time
     setTimeout(() => {
       setLoading(false);
     }, 1000);
   }, []);
 
-  if (!isAuthenticated) {
-    router.replace("/signin");
-    return null;
-  }
-
-  const handleRemoveFromCart = (productId) => {
-    removeFromCart(productId);
-  };
-
   const handleQuantityChange = async (productId, newQuantity) => {
     if (newQuantity < 1) return;
     await updateQuantity(productId, newQuantity);
   };
 
-  const handleBuyNow = () => {
-    setMessage("Order placed successfully!");
-    setTimeout(() => {
-      clearCart();
-      router.push("/");
-    }, 2000);
+  const handlePayment = async () => {
+    try {
+      setProcessing(true);
+      const totalAmount = cartItems.reduce(
+        (total, item) => total + item.price * (item.quantity || 1),
+        0
+      );
+
+      // Create order
+      const orderResponse = await fetch("/api/orders/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: totalAmount,
+          userId,
+          items: cartItems,
+        }),
+      });
+
+      const orderData = await orderResponse.json();
+
+      if (!orderData.orderId) {
+        throw new Error("Failed to create order");
+      }
+
+      // Initialize Razorpay payment
+      const options = {
+        key: orderData.key,
+        amount: orderData.amountInPaise,
+        currency: orderData.currency,
+        name: "Your Store Name",
+        description: "Purchase from Your Store",
+        order_id: orderData.orderId,
+        handler: async (response) => {
+          try {
+            // Verify payment
+            const verifyResponse = await fetch("/api/orders/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
+
+            const verifyData = await verifyResponse.json();
+
+            if (verifyData.message === "Payment verified successfully") {
+              setMessage("Order placed successfully!");
+              clearCart();
+              setTimeout(() => {
+                router.push("/");
+              }, 2000);
+            }
+          } catch (error) {
+            console.error("Payment verification failed:", error);
+            setMessage("Payment verification failed. Please contact support.");
+          }
+        },
+        prefill: {
+          email: "customer@example.com",
+        },
+        theme: {
+          color: "#2563eb",
+        },
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open();
+    } catch (error) {
+      console.error("Payment initiation failed:", error);
+      setMessage("Failed to initiate payment. Please try again.");
+    } finally {
+      setProcessing(false);
+    }
   };
 
-  const totalAmount = getTotalPrice();
+  if (!isAuthenticated) {
+    router.replace("/signin");
+    return null;
+  }
 
   if (loading) {
     return (
@@ -113,6 +181,11 @@ export default function CartPage() {
     );
   }
 
+  const totalAmount = cartItems.reduce(
+    (total, item) => total + item.price * (item.quantity || 1),
+    0
+  );
+
   return (
     <div className="container mx-auto px-4 py-8 mt-16">
       {message && (
@@ -136,43 +209,37 @@ export default function CartPage() {
                 className="w-24 h-24 object-cover rounded-md"
               />
               <div className="flex-grow">
-                <h3 className="text-lg font-semibold text-black">
-                  {item.name}
-                </h3>
+                <h3 className="text-lg font-semibold text-black">{item.name}</h3>
                 <p className="text-gray-600">{item.description}</p>
                 <p className="text-green-600 font-bold mt-2">
-                  ₹{item.price.toFixed(2)}
+                  ₹{(item.price * (item.quantity || 1)).toFixed(2)}
                 </p>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center border rounded-lg">
+                <div className="flex items-center gap-2 mt-2">
                   <button
                     onClick={() =>
                       handleQuantityChange(item.id, (item.quantity || 1) - 1)
                     }
-                    className="px-3 py-1 text-gray-600 hover:bg-gray-100 rounded-l-lg"
+                    className="bg-gray-200 text-gray-700 px-3 py-1 rounded-lg hover:bg-gray-300 transition-colors"
                   >
                     -
                   </button>
-                  <span className="px-4 py-1 text-gray-800">
-                    {item.quantity || 1}
-                  </span>
+                  <span className="text-black">{item.quantity || 1}</span>
                   <button
                     onClick={() =>
                       handleQuantityChange(item.id, (item.quantity || 1) + 1)
                     }
-                    className="px-3 py-1 text-gray-600 hover:bg-gray-100 rounded-r-lg"
+                    className="bg-gray-200 text-gray-700 px-3 py-1 rounded-lg hover:bg-gray-300 transition-colors"
                   >
                     +
                   </button>
                 </div>
-                <button
-                  onClick={() => handleRemoveFromCart(item.id)}
-                  className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
-                >
-                  Remove
-                </button>
               </div>
+              <button
+                onClick={() => removeFromCart(item.id)}
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+              >
+                Remove
+              </button>
             </div>
           ))}
         </div>
@@ -186,10 +253,7 @@ export default function CartPage() {
             <div className="flex justify-between mb-4">
               <span className="text-gray-600">Total Items:</span>
               <span className="text-black">
-                {cartItems.reduce(
-                  (total, item) => total + (item.quantity || 1),
-                  0
-                )}
+                {cartItems.reduce((total, item) => total + (item.quantity || 1), 0)}
               </span>
             </div>
             <div className="flex justify-between mb-4">
@@ -199,10 +263,11 @@ export default function CartPage() {
               </span>
             </div>
             <button
-              onClick={handleBuyNow}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-500 transition-colors"
+              onClick={handlePayment}
+              disabled={processing}
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Buy Now
+              {processing ? "Processing..." : "Proceed to Payment"}
             </button>
           </div>
         </div>

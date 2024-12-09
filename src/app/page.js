@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import useAuthStore from "@/store/useAuthStore";
 import Link from "next/link";
 
@@ -21,7 +21,7 @@ const ProductSkeleton = () => (
 );
 
 export default function Home() {
-  const router = useRouter();
+  // const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,7 +31,7 @@ export default function Home() {
     //   router.replace("/signin");
     //   return;
     // }
-
+    console.log(isAuthenticated);
     const fetchProducts = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_VERCEL_URL
@@ -49,7 +49,7 @@ export default function Home() {
     };
 
     fetchProducts();
-  }, [isAuthenticated, router]);
+  }, []);
 
   // if (!isAuthenticated) {
   //   return null;

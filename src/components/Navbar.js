@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import useAuthStore from "@/store/useAuthStore";
 import useCartStore from "@/store/useCartStore";
-import { ShoppingCart, Heart, Menu, X } from "lucide-react";
+import { ShoppingCart, Heart, Menu, X, History } from "lucide-react";
 import { useState } from "react";
 
 export default function Navbar() {
@@ -26,10 +26,6 @@ export default function Navbar() {
       router.push("/signin");
     }
   };
-
-  // if (!isAuthenticated) {
-  //   return null;
-  // }
 
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white border-b z-50">
@@ -79,28 +75,35 @@ export default function Navbar() {
 
           {/* Right Side Icons */}
           <div className="flex items-center space-x-4">
-            <Link
-              href="/wishlist"
-              className="relative p-2 hover:bg-gray-100 rounded-full"
-            >
-              <Heart className="h-5 w-5 text-gray-600" />
-              {savedItems.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">
-                  {savedItems.length}
-                </span>
-              )}
-            </Link>
-            <Link
-              href="/cart"
-              className="relative p-2 hover:bg-gray-100 rounded-full"
-            >
-              <ShoppingCart className="h-5 w-5 text-gray-600" />
-              {cartItems.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">
-                  {cartItems.length}
-                </span>
-              )}
-            </Link>
+            {isAuthenticated && (
+              <>
+                <Link
+                  href="/wishlist"
+                  className="relative p-2 hover:bg-gray-100 rounded-full"
+                >
+                  <Heart className="h-5 w-5 text-gray-600" />
+                  {savedItems.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">
+                      {savedItems.length}
+                    </span>
+                  )}
+                </Link>
+                <Link
+                  href="/cart"
+                  className="relative p-2 hover:bg-gray-100 rounded-full"
+                >
+                  <ShoppingCart className="h-5 w-5 text-gray-600" />
+                  {cartItems.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">
+                      {cartItems.length}
+                    </span>
+                  )}
+                </Link>
+                <Link href="/orders" className="relative p-2 ">
+                  <p className="text-gray-600">Orders</p>
+                </Link>
+              </>
+            )}
             <button
               onClick={handleAuthClick}
               className="text-sm bg-slate-200 p-3 rounded-lg text-gray-600 hover:text-gray-900 font-medium"
@@ -156,6 +159,18 @@ export default function Navbar() {
               >
                 About
               </Link>
+              {isAuthenticated && (
+                <Link
+                  href="/orders"
+                  className={`text-sm px-4 py-2 rounded-lg transition-colors ${
+                    isActive("/orders")
+                      ? "bg-gray-100 text-gray-900 font-medium"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  }`}
+                >
+                  Orders
+                </Link>
+              )}
             </div>
           </div>
         )}
